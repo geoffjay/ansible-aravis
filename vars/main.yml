@@ -1,2 +1,13 @@
 ---
 # vars file for ansible_aravis
+packages:
+- libxml2-dev
+- libusb-1.0-0-dev
+- libgstreamer1.0-dev
+- libcap-ng-dev
+- libgstreamer-plugins-base1.0-dev
+- libnotify-dev
+- intltool
+- udev
+
+aravis_version: 0.6.1

@@ -1,5 +1,51 @@
 ---
 # tasks file for ansible_aravis
-- name: Molecule Hello World!
-  debug:
-    msg: Hello, World!
+- name: Install Aravis dependencies
+  become: yes
+
+  package:
+    name: "{{ packages }}"
+    state: present
+
+- name: Download Aravis
+  get_url:
+    url: http://ftp.acc.umu.se/pub/GNOME/sources/aravis/0.6/aravis-{{ aravis_version }}.tar.xz
+    dest: /usr/src/aravis-{{ aravis_version }}.tar.xz
+
+- name: Extract Aravis
+  command: tar xvvf aravis-{{ aravis_version }}.tar.xz
+  args:
+    chdir: /usr/src
+
+- name: Configure Aravis
+  shell: |
+    cd /usr/src/aravis-{{ aravis_version }}
+    aclocal --install -I m4
+    intltoolize --force --copy --automake
+    autoreconf --verbose --force --install
+    ./configure --prefix=/usr --disable-viewer
+
+- name: Build Aravis
+  command: make
+  args:
+    chdir: /usr/src/aravis-{{ aravis_version }}
+
+- name: Install Aravis
+  command: make install
+  args:
+    chdir: /usr/src/aravis-{{ aravis_version }}
+
+- name: Copy Basler udev rules
+  copy:
+    src: ./60-basler.rules
+    dest: /lib/udev/rules.d/60-basler.rules
+
+- name: Copy Sentech udev rules
+  copy:
+    src: ./61-sentech.rules
+    dest: /lib/udev/rules.d/61-sentech.rules
+
+- name: Aravis Post-installation
+  shell: |
+    sudo udevadm control --reload
+    sudo udevadm trigger
