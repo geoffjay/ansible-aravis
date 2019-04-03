@@ -1,21 +1,22 @@
 ---
 # tasks file for ansible_aravis
 - name: Install Aravis dependencies
-  become: yes
-
   package:
     name: "{{ packages }}"
     state: present
+  become: yes
 
 - name: Download Aravis
   get_url:
     url: http://ftp.acc.umu.se/pub/GNOME/sources/aravis/0.6/aravis-{{ aravis_version }}.tar.xz
     dest: /usr/src/aravis-{{ aravis_version }}.tar.xz
+  become: yes
 
 - name: Extract Aravis
   command: tar xvvf aravis-{{ aravis_version }}.tar.xz
   args:
     chdir: /usr/src
+  become: yes
 
 - name: Configure Aravis
   shell: |
@@ -24,28 +25,34 @@
     intltoolize --force --copy --automake
     autoreconf --verbose --force --install
     ./configure --prefix=/usr --disable-viewer
+  become: yes
 
 - name: Build Aravis
   command: make
   args:
     chdir: /usr/src/aravis-{{ aravis_version }}
+  become: yes
 
 - name: Install Aravis
   command: make install
   args:
     chdir: /usr/src/aravis-{{ aravis_version }}
+  become: yes
 
 - name: Copy Basler udev rules
   copy:
-    src: ./60-basler.rules
-    dest: /lib/udev/rules.d/60-basler.rules
+    src: 60-basler.rules
+    dest: /etc/udev/rules.d/60-basler.rules
+  become: yes
 
 - name: Copy Sentech udev rules
   copy:
-    src: ./61-sentech.rules
-    dest: /lib/udev/rules.d/61-sentech.rules
+    src: 61-sentech.rules
+    dest: /etc/udev/rules.d/61-sentech.rules
+  become: yes
 
 - name: Aravis Post-installation
   shell: |
-    sudo udevadm control --reload
-    sudo udevadm trigger
+    udevadm control --reload
+    udevadm trigger
+  become: yes
